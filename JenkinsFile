@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Kod cekiliyor...'
+            }
+        }
+
+        stage('Build Info') {
+            steps {
+                bat '''
+                echo Jenkins pipeline build > build_info.txt
+                echo Tarih: %DATE% %TIME% >> build_info.txt
+                echo Job: %JOB_NAME% >> build_info.txt
+                echo Build No: %BUILD_NUMBER% >> build_info.txt
+                echo Branch: %GIT_BRANCH% >> build_info.txt
+
+                for /f %%i in ('git rev-parse HEAD') do set COMMIT=%%i
+                echo Commit: %COMMIT% >> build_info.txt
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: 'build_info.txt'
+            echo 'Build basarili, artifact saklandi'
+        }
+
+        failure {
+            echo 'Build basarisiz'
+        }
+    }
+}
