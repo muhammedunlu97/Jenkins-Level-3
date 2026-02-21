@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Prepare Build Info') {
+            steps {
+                bat '''
+                echo Dummy deploy pipeline > build_info.txt
+                echo Tarih: %DATE% %TIME% >> build_info.txt
+                echo Job: %JOB_NAME% >> build_info.txt
+                echo Build No: %BUILD_NUMBER% >> build_info.txt
+                echo Branch: %GIT_BRANCH% >> build_info.txt
+
+                for /f %%i in ('git rev-parse HEAD') do set COMMIT=%%i
+                echo Commit: %COMMIT% >> build_info.txt
+                '''
+            }
+        }
+
+        stage('Deploy to PROD (Dummy)') {
+            steps {
+                bat '''
+                if not exist C:\\deploy\\prod mkdir C:\\deploy\\prod
+                copy /Y build_info.txt C:\\deploy\\prod\\build_info_%BUILD_NUMBER%.txt
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            archiveArtifacts artifacts: 'build_info.txt'
+            echo 'Dummy deploy basariyla tamamlandi'
+        }
+
+        failure {
+            echo 'Dummy deploy basarisiz'
+        }
+    }
+}
